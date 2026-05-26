@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>VaultX - Secure Password Manager</title>
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <div id="app">
+    <!-- ================= SETUP SCREEN ================= -->
+    <div id="setup-screen" class="screen d-none">
+      <div class="header-logo">
+        <div class="logo-shield">
+          <img src="icons/icon128.png" alt="VaultX Logo" class="shield-img">
+        </div>
+        <h1>VaultX</h1>
+        <p class="subtitle">Zero-Knowledge Offline Vault</p>
+      </div>
+
+      <form id="setup-form" class="form-container">
+        <div class="info-banner">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon-info">
+            <circle cx="12" cy="12" r="10"></circle>
+            <line x1="12" y1="16" x2="12" y2="12"></line>
+            <line x1="12" y1="8" x2="12.01" y2="8"></line>
+          </svg>
+          <span class="info-text">Since VaultX is zero-knowledge, your master password cannot be recovered if forgotten. Choose wisely.</span>
+        </div>
+
+        <div class="input-group">
+          <label for="setup-password">Set Master Password</label>
+          <input type="password" id="setup-password" required minlength="8" placeholder="Must be at least 8 characters">
+        </div>
+
+        <div class="input-group">
+          <label for="setup-password-confirm">Confirm Master Password</label>
+          <input type="password" id="setup-password-confirm" required placeholder="Repeat master password">
+        </div>
+
+        <button type="submit" class="btn btn-primary btn-block">Create Vault</button>
+      </form>
+    </div>
+
+    <!-- ================= UNLOCK SCREEN ================= -->
+    <div id="unlock-screen" class="screen d-none">
+      <div class="header-logo">
+        <div class="logo-shield pulse-glow">
+          <img src="icons/icon128.png" alt="VaultX Logo" class="shield-img">
+        </div>
+        <h1>VaultX</h1>
+        <p class="subtitle">Vault is Locked</p>
+      </div>
+
+      <form id="unlock-form" class="form-container">
+        <div id="unlock-error" class="error-banner d-none"></div>
+
+        <div class="input-group">
+          <label for="unlock-password">Master Password</label>
+          <div class="password-input-wrapper">
+            <input type="password" id="unlock-password" required placeholder="Enter master password">
+            <button type="button" id="toggle-unlock-password" class="icon-btn-inline">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="eye-icon"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+            </button>
+          </div>
+        </div>
+
+        <button type="submit" class="btn btn-primary btn-block">Unlock Vault</button>
+        <button type="button" id="btn-reset-vault-trigger" class="btn btn-text btn-block">Forgotten Password? Reset Vault</button>
+      </form>
+    </div>
+
+    <!-- ================= VAULT SCREEN ================= -->
+    <div id="vault-screen" class="screen d-none">
+      <div class="vault-header">
+        <div class="vault-brand">
+          <img src="icons/icon32.png" alt="VaultX Logo" class="brand-logo-mini">
+          <span>VaultX</span>
+        </div>
+        <div class="header-actions">
+          <button id="btn-add-entry" title="Add Credential" class="icon-btn">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+          </button>
+          <button id="btn-settings" title="Settings" class="icon-btn">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+          </button>
+          <button id="btn-lock" title="Lock Vault" class="icon-btn highlight">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+          </button>
+        </div>
+      </div>
+
+      <div class="search-bar">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="search-icon"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+        <input type="text" id="search-input" placeholder="Search logins...">
+        <button id="btn-clear-search" class="d-none">&times;</button>
+      </div>
+
+      <div class="vault-scroll-area">
+        <!-- Matching suggested logins segment -->
+        <div id="suggested-section" class="vault-section d-none">
+          <h2 class="section-title text-accent">Suggested for this site</h2>
+          <div id="suggested-list" class="entries-list">
+            <!-- Injected active domain logins -->
+          </div>
+        </div>
+
+        <!-- All standard logins segment -->
+        <div id="all-logins-section" class="vault-section">
+          <h2 class="section-title">All Credentials</h2>
+          <div id="all-entries-list" class="entries-list">
+            <!-- Injected standard logins -->
+          </div>
+          <div id="empty-vault-message" class="empty-state d-none">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="empty-icon"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><line x1="9" y1="9" x2="15" y2="9"></line><line x1="9" y1="13" x2="15" y2="13"></line><line x1="9" y1="17" x2="13" y2="17"></line></svg>
+            <p>No credentials stored yet.</p>
+            <button id="btn-create-first" class="btn btn-secondary btn-sm">Add your first login</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ================= ADD / EDIT ENTRY FORM SCREEN ================= -->
+    <div id="form-screen" class="screen d-none">
+      <div class="screen-header">
+        <button id="btn-form-back" class="icon-btn-text">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
+          <span>Back</span>
+        </button>
+        <h2 id="form-title">Add Credential</h2>
+      </div>
+
+      <form id="entry-form" class="form-scrollable">
+        <input type="hidden" id="entry-id">
+
+        <div class="input-group">
+          <label for="entry-name">Label / Title *</label>
+          <input type="text" id="entry-name" required placeholder="e.g. Google Accounts">
+        </div>
+
+        <div class="input-group">
+          <label for="entry-domain">Website URL / Domain *</label>
+          <input type="text" id="entry-domain" required placeholder="e.g. google.com">
+        </div>
+
+        <div class="input-group">
+          <label for="entry-username">Username / Email *</label>
+          <input type="text" id="entry-username" required placeholder="Username or email address">
+        </div>
+
+        <div class="input-group password-group">
+          <div class="password-header">
+            <label for="entry-password">Password *</label>
+            <button type="button" id="btn-toggle-generator" class="btn-tool-link">Generate Password</button>
+          </div>
+          <div class="password-input-wrapper">
+            <input type="password" id="entry-password" required placeholder="Secure credential password">
+            <button type="button" id="toggle-entry-password" class="icon-btn-inline">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="eye-icon"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+            </button>
+          </div>
+        </div>
+
+        <!-- ================= PASSWORD GENERATOR DRAWER ================= -->
+        <div id="generator-drawer" class="generator-panel d-none">
+          <div class="generator-row">
+            <span class="gen-label">Length: <span id="gen-len-val">16</span></span>
+            <input type="range" id="gen-length" min="8" max="64" value="16" class="slider">
+          </div>
+          <div class="generator-options">
+            <label class="checkbox-option">
+              <input type="checkbox" id="gen-uppercase" checked>
+              <span>A-Z</span>
+            </label>
+            <label class="checkbox-option">
+              <input type="checkbox" id="gen-lowercase" checked>
+              <span>a-z</span>
+            </label>
+            <label class="checkbox-option">
+              <input type="checkbox" id="gen-numbers" checked>
+              <span>0-9</span>
+            </label>
+            <label class="checkbox-option">
+              <input type="checkbox" id="gen-symbols" checked>
+              <span>!@#$</span>
+            </label>
+          </div>
+          <div class="generator-actions">
+            <input type="text" id="gen-output" readonly placeholder="Generated password">
+            <button type="button" id="btn-copy-gen" class="btn btn-secondary btn-xs">Copy</button>
+            <button type="button" id="btn-apply-gen" class="btn btn-primary btn-xs">Apply</button>
+          </div>
+        </div>
+
+        <div class="input-group">
+          <label for="entry-notes">Notes (Optional)</label>
+          <textarea id="entry-notes" rows="3" placeholder="Secret keys, recovery seeds, or questions..."></textarea>
+        </div>
+
+        <div class="form-actions">
+          <button type="button" id="btn-form-cancel" class="btn btn-secondary">Cancel</button>
+          <button type="submit" class="btn btn-primary">Save Entry</button>
+        </div>
+      </form>
+    </div>
+
+    <!-- ================= SETTINGS SCREEN ================= -->
+    <div id="settings-screen" class="screen d-none">
+      <div class="screen-header">
+        <button id="btn-settings-back" class="icon-btn-text">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
+          <span>Back</span>
+        </button>
+        <h2>Settings</h2>
+      </div>
+
+      <div class="settings-scrollable">
+        <!-- Session Locking Options -->
+        <div class="settings-section">
+          <h3>Security</h3>
+          
+          <div class="setting-item">
+            <div class="setting-info">
+              <span class="setting-title">Auto-Lock Inactivity Timeout</span>
+              <span class="setting-desc">Lock vault after periods of user inactivity.</span>
+            </div>
+            <select id="select-lock-timeout" class="select-input">
+              <option value="1">1 Minute</option>
+              <option value="5">5 Minutes</option>
+              <option value="15" selected>15 Minutes</option>
+              <option value="30">30 Minutes</option>
+              <option value="60">1 Hour</option>
+              <option value="-1">Never</option>
+            </select>
+          </div>
+
+          <div class="setting-item">
+            <div class="setting-info">
+              <span class="setting-title">Lock on System Idle</span>
+              <span class="setting-desc">Auto-lock the vault when the computer locks/goes idle.</span>
+            </div>
+            <label class="switch">
+              <input type="checkbox" id="checkbox-system-idle" checked>
+              <span class="toggle-slider"></span>
+            </label>
+          </div>
+
+          <div class="setting-item">
+            <div class="setting-info">
+              <span class="setting-title">Clear Clipboard Timeout</span>
+              <span class="setting-desc">Auto-clear passwords copied to the clipboard.</span>
+            </div>
+            <select id="select-clipboard-timeout" class="select-input">
+              <option value="15">15 Seconds</option>
+              <option value="30" selected>30 Seconds</option>
+              <option value="60">1 Minute</option>
+              <option value="120">2 Minutes</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Data Import/Export Options -->
+        <div class="settings-section">
+          <h3>Vault Backups</h3>
+          <p class="section-desc">Keep offline copies of your vault. All backups remain client-side.</p>
+          
+          <div class="settings-buttons">
+            <button id="btn-export-vault" class="btn btn-secondary btn-sm btn-icon-label">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="btn-svg"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
+              Export Encrypted JSON
+            </button>
+            <button id="btn-import-vault-trigger" class="btn btn-secondary btn-sm btn-icon-label">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="btn-svg"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+              Import JSON Backup
+            </button>
+            <input type="file" id="import-file-input" class="d-none" accept=".json">
+          </div>
+        </div>
+
+        <!-- Danger Options -->
+        <div class="settings-section">
+          <h3 class="text-danger">Danger Zone</h3>
+          <p class="section-desc font-warning">These modifications are destructive. Proceed with extreme caution.</p>
+          
+          <div class="settings-buttons">
+            <button id="btn-factory-reset" class="btn btn-danger btn-sm">
+              Factory Reset (Wipe All Data)
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ================= CONFIRMATION MODALS (COMMON GLASS) ================= -->
+    <div id="modal-container" class="modal-overlay d-none">
+      <!-- Factory Reset Modal -->
+      <div id="modal-reset" class="modal-box d-none">
+        <h3 class="text-danger">Confirm Factory Reset?</h3>
+        <p>This action is irreversible. All encrypted credentials and settings stored in this browser will be destroyed immediately.</p>
+        <div class="modal-actions">
+          <button id="btn-reset-cancel" class="btn btn-secondary btn-sm">Cancel</button>
+          <button id="btn-reset-confirm" class="btn btn-danger btn-sm">Wipe Database</button>
+        </div>
+      </div>
+
+      <!-- Password Reset Modal -->
+      <div id="modal-purge-vault" class="modal-box d-none">
+        <h3 class="text-danger">Purge Vault & Setup New?</h3>
+        <p>Since VaultX uses zero-knowledge cryptography, we cannot decrypt your logins without your master password. To set a new master password, you must completely purge your existing credentials.</p>
+        <div class="modal-actions">
+          <button id="btn-purge-cancel" class="btn btn-secondary btn-sm">Cancel</button>
+          <button id="btn-purge-confirm" class="btn btn-danger btn-sm">Purge Existing Data</button>
+        </div>
+      </div>
+
+      <!-- Import Vault Backup Modal -->
+      <div id="modal-import-password" class="modal-box d-none">
+        <h3>Backup Encryption Key</h3>
+        <p>To import this backup, please enter the Master Password that was active when this backup was exported.</p>
+        <div id="import-error" class="error-banner d-none"></div>
+        <div class="input-group">
+          <input type="password" id="import-password" placeholder="Backup master password" required>
+        </div>
+        <div class="modal-actions">
+          <button id="btn-import-cancel" class="btn btn-secondary btn-sm">Cancel</button>
+          <button id="btn-import-confirm" class="btn btn-primary btn-sm">Decrypt & Merge</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ================= LOADING OVERLAY ================= -->
+    <div id="loading-overlay" class="loading-overlay d-none">
+      <div class="spinner-container">
+        <div class="spin-ring"></div>
+        <div class="spin-shield">
+          <img src="icons/icon32.png" alt="VaultX Logo" class="shield-mini-img">
+        </div>
+      </div>
+      <p id="loading-text">Deriving Security Keys...</p>
+    </div>
+
+    <!-- ================= TOAST ALERTS ================= -->
+    <div id="toast" class="toast d-none">
+      <span id="toast-message">Copied to clipboard!</span>
+    </div>
+
+  </div>
+
+  <!-- Locally packaged dependencies and controllers -->
+  <script src="libs/hash-wasm.min.js"></script>
+  <script src="popup.js"></script>
+</body>
+</html>
